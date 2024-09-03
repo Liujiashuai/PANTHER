@@ -64,10 +64,10 @@ class PANTHERBase(nn.Module):
         
         pis, mus, Sigmas, qqs = [], [], [], []
         pi, mu, Sigma, qq = self.priors.map_em(S, 
-                                                    mask=mask, 
-                                                    num_iters=self.L, 
-                                                    tau=self.tau, 
-                                                    prior=self.priors())
+                                                mask=mask, 
+                                                num_iters=self.L, 
+                                                tau=self.tau, 
+                                                prior=self.priors())
 
         pis.append(pi)
         mus.append(mu)

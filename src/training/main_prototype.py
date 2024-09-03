@@ -63,7 +63,7 @@ def main(args):
 
     save_fpath = j_(args.split_dir,
                     'prototypes',
-                    f"prototypes_c{args.n_proto}_{args.data_source[0].split('/')[-2]}_{args.mode}_num_{args.n_proto_patches:.1e}.pkl")
+                    f"prototypes_c{args.n_proto}_{args.data_source[0].split('/')[-1]}_{args.mode}_num_{args.n_proto_patches:.1e}.pkl")  # change the path
 
     save_pkl(save_fpath, {'prototypes': weights})
 
@@ -92,11 +92,14 @@ parser.add_argument('--split_names', type=str, default='train,val,test',
                     help='delimited list for specifying names within each split')
 parser.add_argument('--num_workers', type=int, default=8)
 
+# add the size of the patches
+parser.add_argument('--mag', type=str, default='0_1024')
+
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    args.split_dir = j_('splits', args.split_dir)
     args.split_name = os.path.basename(args.split_dir)
+    args.split_dir = j_('splits', args.split_dir, args.mag)  # changed
     print('split_dir: ', args.split_dir)
 
     args.data_source = [src for src in args.data_source.split(',')]

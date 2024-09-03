@@ -102,11 +102,14 @@ parser.add_argument('--load_proto', action='store_true', default=False)
 parser.add_argument('--proto_path', type=str)
 parser.add_argument('--fix_proto', action='store_true', default=False)
 
+# add the size of the patches
+parser.add_argument('--mag', type=str, default='0_1024')
+
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    args.split_dir = j_('splits', args.split_dir)
     args.split_name = os.path.basename(args.split_dir)
+    args.split_dir = j_('splits', args.split_dir, args.mag)
     print('split_dir: ', args.split_dir)
 
     args.data_source = [src for src in args.data_source.split(',')]

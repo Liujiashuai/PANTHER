@@ -1,7 +1,7 @@
 #!/bin/bash
 
 gpuid=$1
-config=$2
+config=$2  # panther, ot
 
 ### Dataset Information
 declare -a dataroots=(

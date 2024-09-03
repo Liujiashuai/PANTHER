@@ -18,16 +18,23 @@ class WSIProtoDataset(Dataset):
                  df,
                  data_source,
                  sample_col='slide_id',
-                 slide_col='slide_id'):
+                 slide_col='slide_id',
+                 mag='0_1024'):
         """
         Args:
         """
 
         self.data_source = []
         for src in data_source:
-            assert os.path.basename(src) in ['feats_h5', 'feats_pt']
-            self.use_h5 = True if os.path.basename(src) == 'feats_h5' else False
-            self.data_source.append(src)
+            self.use_h5 = False
+            self.use_npy = False
+            if os.path.basename(src) in ['feats_h5', 'feats_pt']:
+                self.use_h5 = True if os.path.basename(src) == 'feats_h5' else False
+                self.data_source.append(src)
+            else:
+                self.use_npy = True
+                self.data_source.append(src)
+        
 
         self.data_df = df
         assert 'Unnamed: 0' not in self.data_df.columns
@@ -39,6 +46,7 @@ class WSIProtoDataset(Dataset):
         self.y = None
 
         self.idx2sample_df = pd.DataFrame({'sample_id': self.data_df[sample_col].astype(str).unique()})
+        self.mag = mag
         self.set_feat_paths_in_df()
         self.data_df.index = self.data_df[sample_col].astype(str)
         self.data_df.index.name = 'sample_id'
@@ -53,7 +61,6 @@ class WSIProtoDataset(Dataset):
         """
         self.feats_df = pd.concat([df_sdir(feats_dir, cols=['fpath', 'fname', self.slide_col]) for feats_dir in self.data_source]).drop(['fname'], axis=1).reset_index(drop=True)
         missing_feats_in_split = series_diff(self.data_df[self.slide_col], self.feats_df[self.slide_col])
-
         ### Assertion to make sure that there are not any missing slides that were specified in your split csv file
         try:
             assert len(missing_feats_in_split) == 0
@@ -79,6 +86,7 @@ class WSIProtoDataset(Dataset):
         feat_paths = self.data_df.loc[self.get_sample_id(idx), 'fpath']
         if isinstance(feat_paths, str):
             feat_paths = [feat_paths]
+        print(feat_paths)
         return feat_paths
 
     def __getitem__(self, idx):
@@ -91,6 +99,11 @@ class WSIProtoDataset(Dataset):
             if self.use_h5:
                 with h5py.File(feat_path, 'r') as f:
                     features = f['features'][:]
+            elif self.use_npy:
+                np_files = np.load(feat_path, allow_pickle=True)
+                features = np_files[()]['feature']
+                coords = np_files[()]['index']
+                all_coords.append(coords)
             else:
                 features = torch.load(feat_path)
 

@@ -3,16 +3,17 @@
 gpuid=$1
 split_dir=$2
 split_names=$3
+project_name=$4
 dataroots=("$@")
 
 model_tuple='PANTHER,default'
 feat='extracted-vit_large_patch16_224.dinov2.uni_mass100k'
-input_dim=1024
-mag='20x'
+input_dim=512  # 512 for conch
+mag='1_1024'  # change, 0_1024, 1_512, 1_1024
 patch_size=256
 
 bag_size='-1'
-out_size=16
+out_size=8  # Number of prototypes, 0_1024: 32, 1_512: 16, 1_1024: 8
 em_step=1
 eps=1
 out_type='allcat'
@@ -28,7 +29,7 @@ feat_name=$(echo $feat | sed 's/^extracted-//')
 # Identify feature paths
 all_feat_dirs=""
 for dataroot_path in "${dataroots[@]}"; do
-  feat_dir=${dataroot_path}/extracted_mag${mag}_patch${patch_size}_fp/${feat}/feats_pt
+  feat_dir=${dataroot_path}
   if ! test -d $feat_dir
   then
     continue
@@ -56,11 +57,12 @@ cmd="CUDA_VISIBLE_DEVICES=$gpuid python -m training.main_embedding \\
 --out_type ${out_type} \\
 --ot_eps ${eps} \\
 --fix_proto \\
+--mag ${mag} \\
 "
 
 if [[ $load_proto -eq 1 ]]; then
   cmd="$cmd --load_proto \\
-  --proto_path "splits/${split_dir}/prototypes/prototypes_c${out_size}_extracted-${feat_name}_faiss_num_${proto_num_samples}.pkl" \\
+  --proto_path "splits/${split_dir}/${mag}/prototypes/prototypes_c${out_size}_${project_name}_kmeans_num_${proto_num_samples}.pkl" \\
   "
 fi
 

@@ -6,18 +6,18 @@ split_names=$3
 dataroots=("$@")
 
 feat='extracted-vit_large_patch16_224.dinov2.uni_mass100k'
-input_dim=1024
-mag='20x'
+input_dim=512
+mag='1_1024' # change, 0_1024, 1_512, 1_1024
 patch_size=256
 n_sampling_patches=100000 # Number of patch features to connsider for each prototype. Total number of patch fatures = n_sampling_patches * n_proto
-mode='faiss'  # 'faiss' or 'kmeans'
-n_proto=16  # Number of prototypes
+mode='kmeans'  # 'faiss' or 'kmeans'
+n_proto=8  # Number of prototypes, 0_1024: 32, 1_512: 16, 1_1024: 8
 n_init=5  # Number of KMeans initializations to perform
 
 # Validity check for feat paths
 all_feat_dirs=""
 for dataroot_path in "${dataroots[@]}"; do
-  feat_dir=${dataroot_path}/extracted_mag${mag}_patch${patch_size}_fp/${feat}/feats_pt
+  feat_dir=${dataroot_path}
   if ! test -d $feat_dir
   then
     continue
@@ -41,6 +41,7 @@ cmd="CUDA_VISIBLE_DEVICES=$gpuid python -m training.main_prototype \\
 --n_init ${n_init} \\
 --seed 1 \\
 --num_workers 10 \\
+--mag ${mag} \\
 "
 
 eval "$cmd"
